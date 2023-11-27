@@ -1,6 +1,7 @@
 import { TicketStatus } from '@prisma/client';
 import { cannotBookError, notFoundError } from '@/errors';
 import { bookingRepository, enrollmentRepository, roomRepository, ticketsRepository } from '@/repositories';
+import httpStatus from 'http-status';
 
 async function validateUserBooking(userId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
@@ -12,7 +13,7 @@ async function validateUserBooking(userId: number) {
   const type = ticket.TicketType;
 
   if (ticket.status === TicketStatus.RESERVED || type.isRemote || !type.includesHotel) {
-    throw cannotBookError();
+    throw httpStatus.FORBIDDEN;
   }
 }
 
