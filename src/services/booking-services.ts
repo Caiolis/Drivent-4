@@ -19,10 +19,10 @@ async function validateUserBooking(userId: number) {
 
 async function checkValidBooking(roomId: number) {
   const room = await roomRepository.findById(roomId);
-  if (!room) throw notFoundError();
+  if (!room) throw httpStatus.FORBIDDEN;
 
   const bookings = await bookingRepository.findByRoomId(roomId);
-  if (room.capacity <= bookings.length) throw cannotBookError();
+  if (room.capacity <= bookings.length) throw httpStatus.FORBIDDEN;
 }
 
 async function getBooking(userId: number) {
@@ -40,12 +40,12 @@ async function bookRoomById(userId: number, roomId: number) {
 }
 
 async function changeBookingRoomById(userId: number, roomId: number) {
-  if (!roomId) throw notFoundError();
+  if (!roomId) throw httpStatus.FORBIDDEN;
 
   await checkValidBooking(roomId);
   const booking = await bookingRepository.findByUserId(userId);
 
-  if (!booking || booking.userId !== userId) throw cannotBookError();
+  if (!booking || booking.userId !== userId) throw httpStatus.FORBIDDEN;
 
   return bookingRepository.upsertBooking({
     id: booking.id,
