@@ -1,7 +1,6 @@
 import { TicketStatus } from '@prisma/client';
 import { cannotBookError, notFoundError } from '@/errors';
 import { bookingRepository, enrollmentRepository, roomRepository, ticketsRepository } from '@/repositories';
-import httpStatus from 'http-status';
 
 async function validateUserBooking(userId: number) {
   const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
@@ -13,16 +12,16 @@ async function validateUserBooking(userId: number) {
   const type = ticket.TicketType;
 
   if (ticket.status === TicketStatus.RESERVED || type.isRemote || !type.includesHotel) {
-    throw httpStatus.FORBIDDEN;
+    throw cannotBookError();
   }
 }
 
 async function checkValidBooking(roomId: number) {
   const room = await roomRepository.findById(roomId);
-  if (!room) throw httpStatus.FORBIDDEN;
+  if (!room) throw notFoundError();
 
   const bookings = await bookingRepository.findByRoomId(roomId);
-  if (room.capacity <= bookings.length) throw httpStatus.FORBIDDEN;
+  if (room.capacity <= bookings.length) throw cannotBookError();
 }
 
 async function getBooking(userId: number) {
@@ -40,12 +39,12 @@ async function bookRoomById(userId: number, roomId: number) {
 }
 
 async function changeBookingRoomById(userId: number, roomId: number) {
-  if (!roomId) throw httpStatus.FORBIDDEN;
+  if (!roomId) throw notFoundError();
 
   await checkValidBooking(roomId);
   const booking = await bookingRepository.findByUserId(userId);
 
-  if (!booking || booking.userId !== userId) throw httpStatus.FORBIDDEN;
+  if (!booking || booking.userId !== userId) throw cannotBookError();
 
   return bookingRepository.upsertBooking({
     id: booking.id,
