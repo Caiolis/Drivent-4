@@ -1,4 +1,5 @@
 import { TicketStatus } from '@prisma/client';
+import httpStatus from 'http-status';
 import { cannotBookError, notFoundError } from '@/errors';
 import { bookingRepository, enrollmentRepository, roomRepository, ticketsRepository } from '@/repositories';
 
@@ -12,7 +13,7 @@ async function validateUserBooking(userId: number) {
   const type = ticket.TicketType;
 
   if (ticket.status === TicketStatus.RESERVED || type.isRemote || !type.includesHotel) {
-    throw cannotBookError();
+    throw httpStatus[403];
   }
 }
 
@@ -56,5 +57,5 @@ async function changeBookingRoomById(userId: number, roomId: number) {
 export const bookingService = {
   bookRoomById,
   getBooking,
-  changeBookingRoomById
+  changeBookingRoomById,
 };
